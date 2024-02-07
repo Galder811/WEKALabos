@@ -4,7 +4,9 @@ import java.util.Calendar;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.converters.ArffSaver;
 import weka.core.converters.ConverterUtils;
 import weka.filters.Filter;
 import weka.filters.supervised.instance.StratifiedRemoveFolds;
@@ -24,39 +26,50 @@ public class Main {
             System.out.println(arg);
         }
 
-        // Cargeison datue
-        ConverterUtils.DataSource trainSource = new ConverterUtils.DataSource(args[0]);
-        Instances trainData = trainSource.getDataSet();
-        trainData.setClassIndex(trainData.numAttributes() - 1);
+        // Cargar datos
+        ConverterUtils.DataSource Source = new ConverterUtils.DataSource(args[0]);
+        Instances Data = Source.getDataSet();
+        Data.setClassIndex(Data.numAttributes() - 1);
 
         // StratifiedHoldOut -> Inicializar
         StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
-        filter.setInputFormat(trainData);
-        filter.setNumFolds(2);
+        filter.setNumFolds(5);
+        filter.setFold(1);
+        filter.setInputFormat(Data);
 
         // Aplicar el filtro a trainData
-        Instances trainDev = Filter.useFilter(trainData, filter);
+        Instances Dev = Filter.useFilter(Data, filter);
 
         // Obtener conjuntos de entrenamiento y desarrollo
-        int numInstances = trainDev.numInstances();
-        int splitIndex = (int) (numInstances * 0.8); //  80% para entrenamiento
+       // int numInstances = trainDev.numInstances();
+        //int splitIndex = (int) (numInstances * 0.8); //  80% para entrenamiento
+        filter.setInvertSelection(true);
+        filter.setInputFormat(Data);
+        Instances train = Filter.useFilter(Data, filter);
+        //Instances train = new Instances(trainDev, 0, splitIndex);
+        //Instances dev = new Instances(trainDev, splitIndex, numInstances - splitIndex);
+        ArffSaver saver = new ArffSaver();
+        saver.setFile(new File(args[1]));
+        saver.setInstances(train);
+        saver.writeBatch();
 
-        Instances train = new Instances(trainDev, 0, splitIndex);
-        Instances dev = new Instances(trainDev, splitIndex, numInstances - splitIndex);
+        saver.setFile(new File(args[2]));
+        saver.setInstances(Dev);
+        saver.writeBatch();
 
-        // BayesianoPorculero
+        // Bayes
         NaiveBayes model = new NaiveBayes();
         model.buildClassifier(train);
 
         // Evaluation
         Evaluation eval = new Evaluation(train);
-        eval.evaluateModel(model, dev);
+        eval.evaluateModel(model, Dev);
 
         // Nahasmen matrix
         System.out.println(eval.toMatrixString());
 
         // Ejecutar creación de doc
-        fitxategiaSortu(eval, args[2]);
+        fitxategiaSortu(eval, args[3]);
     }
 
     private static void fitxategiaSortu(final Evaluation eval, final String directory) {
