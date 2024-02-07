@@ -44,22 +44,22 @@ public class Main {
         final Randomize filterRandom = new Randomize();
         filterRandom.setRandomSeed(1);
         filterRandom.setInputFormat(data);
-
         final Instances RandomData = Filter.useFilter(data, (Filter)filterRandom);
         System.out.println("Data total tiene estas instancias " + data.numInstances());
-        final RemovePercentage filterRemove = new RemovePercentage();
-        filterRemove.setInputFormat(RandomData);
-        filterRemove.setPercentage(34.0);
 
+        final RemovePercentage filterRemove = new RemovePercentage();
+        filterRemove.setPercentage(34.0);
+        filterRemove.setInvertSelection(false);
+        filterRemove.setInputFormat(RandomData);
         final Instances train = Filter.useFilter(RandomData, (Filter)filterRemove);
         System.out.println("Train tiene estas instancias " + train.numInstances());
 
-        final RemovePercentage filterRemove2 = new RemovePercentage();
-        filterRemove2.setInputFormat(RandomData);
-        filterRemove2.setPercentage(34.0);
-        filterRemove2.setInvertSelection(true);
 
-        final Instances dev = Filter.useFilter(RandomData, (Filter)filterRemove2);
+        //final RemovePercentage filterRemove2 = new RemovePercentage();
+        //filterRemove.setPercentage(34.0);
+        filterRemove.setInvertSelection(true);
+        filterRemove.setInputFormat(RandomData);
+        final Instances dev = Filter.useFilter(RandomData, (Filter)filterRemove);
         System.out.println("Dev tiene estas instancias " + dev.numInstances());
 
         train.setClassIndex(train.numAttributes() - 1);
