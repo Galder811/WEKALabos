@@ -10,6 +10,9 @@ import weka.core.converters.ArffSaver;
 import weka.core.converters.ConverterUtils;
 import weka.filters.Filter;
 import weka.filters.supervised.instance.StratifiedRemoveFolds;
+import weka.filters.unsupervised.instance.Randomize;
+
+import javax.crypto.spec.PSource;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -29,25 +32,32 @@ public class Main {
         // Cargar datos
         ConverterUtils.DataSource Source = new ConverterUtils.DataSource(args[0]);
         Instances Data = Source.getDataSet();
+        System.out.println(Data.numInstances());
         Data.setClassIndex(Data.numAttributes() - 1);
+
+        //RANDOMIZE
+        final Randomize filterRandom = new Randomize();
+        filterRandom.setRandomSeed(1);
+        filterRandom.setInputFormat(Data);
+        final Instances RandomData = Filter.useFilter(Data, (Filter) filterRandom);
+        System.out.println("Data tiene estas instancias: " + Data.numInstances());
 
         // StratifiedHoldOut -> Inicializar
         StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
         filter.setNumFolds(5);
         filter.setFold(1);
-        filter.setInputFormat(Data);
+        filter.setInputFormat(RandomData);
 
-        // Aplicar el filtro a trainData
-        Instances Dev = Filter.useFilter(Data, filter);
-
-        // Obtener conjuntos de entrenamiento y desarrollo
-       // int numInstances = trainDev.numInstances();
-        //int splitIndex = (int) (numInstances * 0.8); //  80% para entrenamiento
+        // Aplicar el filtro a Dev y train
+        Instances Dev = Filter.useFilter(RandomData, filter);
+        System.out.println("Dev: " + Dev.numInstances());
         filter.setInvertSelection(true);
-        filter.setInputFormat(Data);
-        Instances train = Filter.useFilter(Data, filter);
-        //Instances train = new Instances(trainDev, 0, splitIndex);
-        //Instances dev = new Instances(trainDev, splitIndex, numInstances - splitIndex);
+        filter.setInputFormat(RandomData);
+        Instances train = Filter.useFilter(RandomData, filter);
+        System.out.println("Train: " + train.numInstances());
+
+
+        // Obtener conjuntos de train y dev y guardaros en archivos .arff
         ArffSaver saver = new ArffSaver();
         saver.setFile(new File(args[1]));
         saver.setInstances(train);
