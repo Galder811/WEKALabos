@@ -45,8 +45,9 @@ public class Main {
 
         // kfcv5
         Evaluation evaluacion = new Evaluation(datos);
-        evaluacion.crossValidateModel(naiveBayes, datos, numFolds, new java.util.Random(1));
-
+        for(int i=1;i<=numFolds;i++){
+            evaluacion.crossValidateModel(naiveBayes, datos, numFolds, new java.util.Random(i));
+        }
         return evaluacion;
     }
 
@@ -59,7 +60,7 @@ public class Main {
         writer.write("Archivo ARFF: " + rutaArchivoARFF + "\n");
         writer.write("Archivo de Resultados: " + rutaArchivoResultados + "\n\n");
         // Escribir los resultados de la evaluación
-        writer.write(resultados);
+       writer.write(resultados);
         writer.close();
     }
 
@@ -69,3 +70,4 @@ public class Main {
         return formatter.format(date);
     }
 }
+
