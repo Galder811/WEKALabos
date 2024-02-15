@@ -20,42 +20,35 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // Verificar los argumentos de entrada
         if (args.length < 5) {
-            System.err.println("Uso: java NaiveBayesModelCreation <data.arff> <NB.model> <QualityEstimation.txt>");
+            System.err.println("Faltan argumentos");
             System.exit(1);
         }
+
+
         // CARGAR LOS DATOS
         ConverterUtils.DataSource source = new ConverterUtils.DataSource(args[0]);
         Instances data = source.getDataSet();
         data.setClassIndex(data.numAttributes() - 1);
-        //hacer hold out con los datos
+
+
+        //HOLD OUT CON LOS DATOS
         aplicarHoldOut(data,args[2]);
-        //kfold
+
+
+        //k-FCV CON LOS DATOS
         entrenarNaiveBayesConValidacionCruzada(data, 5,args[2]);
-        //////////////////////////////////////////////////////////////////////
-
-        // CREAR LA EVALUACIÓN PARA APLICAR K-fold
-        //Evaluation evaluacion = entrenarNaiveBayesConValidacionCruzada(data, 5);
-
-        //Obtener matrix
-        //String resultados = evaluacion.toMatrixString("Matriz de Confusión") + "\n";
-        //resultados += "Métricas de Precisión:\n" + evaluacion.toClassDetailsString();
-
-        // CREAR ARCHIVO
-        //String rutaArchivoARFF = args[0];
-        //String rutaArchivoResultados = args[2];
-
-        //guardarResultadosEnArchivo(rutaArchivoARFF, rutaArchivoResultados, resultados);
 
         // CREAR EL .model
-
         final NaiveBayes model = new NaiveBayes();
         model.buildClassifier(data);
         weka.core.SerializationHelper.write(args[1], model);
 
+        //EJECUTAR EL SEGUNDO PROGRAMA PARA HACER LAS PREDICCIONES
         bigarrenPrograma(model, args[3], args[4]);
         }
 
     private static void bigarrenPrograma(NaiveBayes model, String path1, String path2) throws Exception {
+        //CARGAR LOS DATOS
         ConverterUtils.DataSource source = new ConverterUtils.DataSource(path1);
         Instances data = source.getDataSet();
         data.setClassIndex(data.numAttributes()-1);
@@ -117,25 +110,7 @@ public class Main {
         fitxategiaSortu(evaluacion,path,true);
         //return evaluacion;
     }
-    private static void guardarResultadosEnArchivo(String rutaArchivoARFF, String rutaArchivoResultados, String resultados) throws Exception {
-        // Crear el archivo de resultados
-        BufferedWriter writer = new BufferedWriter(new FileWriter(rutaArchivoResultados));
-        // Escribir la fecha de ejecución y los argumentos
-        writer.write("Fecha de ejecución: " + obtenerFechaActual() + "\n");
-        writer.write("Argumentos de ejecución:\n");
-        writer.write("Archivo ARFF: " + rutaArchivoARFF + "\n");
-        writer.write("Archivo de Resultados: " + rutaArchivoResultados + "\n\n");
-        // Escribir los resultados de la evaluación
-        writer.write(resultados);
-        writer.close();
-    }
 
-
-    private static String obtenerFechaActual() {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        Date date = new Date();
-        return formatter.format(date);
-    }
     private static void fitxategiaSortu(final Evaluation eval, final String directory,Boolean borrar) {
         try {
             double acc=eval.pctCorrect();
